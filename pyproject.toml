@@ -17,6 +17,7 @@ dev = [
     "pre-commit>=4.2.0",
     "pylint>=3.3.7",
     "mypy>=1.16.1",
+    "types-requests>=2.32.4.20250611",
 ]
 [build-system]
 requires = ["pdm-backend"]

@@ -7,6 +7,7 @@ import os
 import sys
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 import requests
 import urllib3
@@ -27,7 +28,7 @@ CUSTOMERS_URL = "https://city4u.co.il/WebApi_portal/v1/Customers/Customer/allcus
 CONFIG_FILE = os.path.expanduser("~/.config/water_consumption/config.json")
 
 
-def get_token(username, password, customer_id):
+def get_token(username: str, password: str, customer_id: str) -> None | str:
     """Get authentication token from City4U API.
 
     Args:
@@ -76,6 +77,7 @@ def get_token(username, password, customer_id):
             user_token = data.get("UserToken")
             if user_token:
                 _LOGGER.info("✓ Successfully extracted UserToken: %s", user_token)
+                assert isinstance(user_token, str), "UserToken must be a string"
                 return user_token
 
             _LOGGER.error("No UserToken found in response")
@@ -90,7 +92,9 @@ def get_token(username, password, customer_id):
         return None
 
 
-def fetch_water_data(token, username, customer_id, meter_number):
+def fetch_water_data(
+    token: str, username: str, customer_id: str, meter_number: str
+) -> None | dict[str, Any]:
     """Fetch water consumption data from City4U API.
 
     Args:
@@ -124,7 +128,9 @@ def fetch_water_data(token, username, customer_id, meter_number):
             return None
 
         try:
-            return response.json()
+            response_json = response.json()
+            assert isinstance(response_json, dict), "Expected a dictionary response"
+            return response_json
         except json.JSONDecodeError:
             _LOGGER.error("Data response is not JSON")
             _LOGGER.error("Data response text: %s...", response.text[:500])
@@ -135,7 +141,7 @@ def fetch_water_data(token, username, customer_id, meter_number):
         return None
 
 
-def save_water_data(data, output_file):
+def save_water_data(data: dict[str, Any], output_file: str) -> bool:
     """Save water consumption data to JSON file with timestamp.
 
     Args:
@@ -159,7 +165,7 @@ def save_water_data(data, output_file):
         return False
 
 
-def format_hebrew_for_display(text):
+def format_hebrew_for_display(text: str) -> str:
     """Format Hebrew text for proper display in terminal environments.
 
     Args:
@@ -180,7 +186,7 @@ def format_hebrew_for_display(text):
     return f"\u202e{reversed_text}\u202c"
 
 
-def get_customer_list():
+def get_customer_list() -> None | list[dict[str, Any]]:
     """Fetch the list of customers from the City4U API.
 
     Returns:
@@ -196,6 +202,7 @@ def get_customer_list():
 
         try:
             customers = response.json()
+            assert isinstance(customers, list), "Expected a list of customers"
             return customers
         except json.JSONDecodeError:
             _LOGGER.error("Customer data response is not valid JSON")
@@ -207,7 +214,7 @@ def get_customer_list():
         return None
 
 
-def select_customer():
+def select_customer() -> None | int:
     """Let the user select their customer (city) from the list.
 
     Returns:
@@ -262,7 +269,7 @@ def select_customer():
             return None
 
 
-def create_config_file(config):
+def create_config_file(config: dict[str, Any]) -> bool:
     """Create a configuration file with the provided settings.
 
     Args:
@@ -287,7 +294,7 @@ def create_config_file(config):
         return False
 
 
-def setup_config():
+def setup_config() -> None | dict[str, Any]:
     """Walk through the setup process to create a configuration file.
 
     Returns:
@@ -337,11 +344,13 @@ def setup_config():
         print(f"\nSetup complete! Configuration saved to {CONFIG_FILE}")
         return config
 
-    print("\nFailed to save configuration. You'll need to provide credentials manually.")
+    print(
+        "\nFailed to save configuration. You'll need to provide credentials manually."
+    )
     return None
 
 
-def load_config():
+def load_config() -> None | dict[str, Any]:
     """Load configuration from file or run setup if it doesn't exist.
 
     Returns:
@@ -352,6 +361,7 @@ def load_config():
             with open(CONFIG_FILE, "r", encoding="utf-8") as f:
                 config = json.load(f)
             _LOGGER.info("Configuration loaded from %s", CONFIG_FILE)
+            assert isinstance(config, dict), "Config must be a dictionary"
             return config
         except (IOError, json.JSONDecodeError) as e:
             _LOGGER.error("Failed to load configuration: %s", e)
@@ -361,7 +371,7 @@ def load_config():
     return setup_config()
 
 
-def parse_arguments():
+def parse_arguments() -> argparse.Namespace:
     """Parse command line arguments.
 
     Returns:
@@ -396,9 +406,9 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def main():
+def main() -> int:
     """Main function to fetch and save water consumption data.
-    
+
     Returns:
         int: Exit code (0 for success, 1 for failure)
     """
@@ -428,6 +438,10 @@ def main():
     if not all([username, password, customer_id]):
         _LOGGER.error("Missing required parameters (username, password, customer_id)")
         return exit_code
+    
+    assert isinstance(username, str), "Username must be a string"
+    assert isinstance(password, str), "Password must be a string"
+    assert isinstance(meter_number, str), "Meter number must be a string"
 
     # Authentication and data retrieval process
     try:
