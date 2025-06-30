@@ -1,0 +1,19 @@
+[project]
+name = "read_water"
+version = "0.1.0"
+description = "\"Water reader using the city4u website\""
+authors = [
+    {name = "Tsvi Mostovicz", email = "ttmost@gmail.com"},
+]
+dependencies = []
+requires-python = ">=3.12"
+readme = "README.md"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+
+[tool.pdm]
+distribution = true
