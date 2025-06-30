@@ -18,15 +18,26 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # --- API URLs ---
 LOGIN_URL = "https://city4u.co.il/WebApiUsersManagement/v1/UsrManagements/LoginUser"
-DATA_URL_TEMPLATE = "https://city4u.co.il/WebApiCity4u/v1/WaterConsumption/ReadingMoneWater/{customer_id}/{meter_number}"
+DATA_URL_TEMPLATE = (
+    "https://city4u.co.il/WebApiCity4u/v1/WaterConsumption/ReadingMoneWater/%s/%s"
+)
 CUSTOMERS_URL = "https://city4u.co.il/WebApi_portal/v1/Customers/Customer/allcustomers"
 
 # Default configuration file location
 CONFIG_FILE = os.path.expanduser("~/.config/water_consumption/config.json")
 
 
-# --- LOGIN FUNCTION ---
 def get_token(username, password, customer_id):
+    """Get authentication token from City4U API.
+
+    Args:
+        username (str): City4U username
+        password (str): City4U password
+        customer_id (str): Customer ID number
+
+    Returns:
+        str or None: The authentication token if successful, None otherwise
+    """
     session = requests.Session()  # Use a simple session for now
 
     # Use the exact payload format from the browser trace
@@ -48,32 +59,49 @@ def get_token(username, password, customer_id):
         response = session.post(
             LOGIN_URL, data=payload, headers=headers, verify=False, timeout=30
         )
-        _LOGGER.debug(f"Login response status: {response.status_code}")
-        _LOGGER.debug(f"Login response headers: {dict(response.headers)}")
-        _LOGGER.debug(f"Login response cookies: {dict(response.cookies)}")
-        if response.status_code == 200:
-            try:
-                data = response.json()
-                user_token = data.get("UserToken")
-                if user_token:
-                    _LOGGER.info(f"✓ Successfully extracted UserToken: {user_token}")
-                    return user_token
-                else:
-                    _LOGGER.error("No UserToken found in response")
-            except Exception as e:
-                _LOGGER.error(f"Failed to parse login response: {e}")
-        else:
+        _LOGGER.debug("Login response status: %s", response.status_code)
+        _LOGGER.debug("Login response headers: %s", dict(response.headers))
+        _LOGGER.debug("Login response cookies: %s", dict(response.cookies))
+
+        if response.status_code != 200:
             _LOGGER.error(
-                f"Login failed with status {response.status_code}: {response.text[:500]}"
+                "Login failed with status %s: %s",
+                response.status_code,
+                response.text[:500],
             )
-    except Exception as e:
-        _LOGGER.error(f"Login request failed: {e}")
+            return None
 
-    return None
+        try:
+            data = response.json()
+            user_token = data.get("UserToken")
+            if user_token:
+                _LOGGER.info("✓ Successfully extracted UserToken: %s", user_token)
+                return user_token
+
+            _LOGGER.error("No UserToken found in response")
+            return None
+
+        except json.JSONDecodeError as e:
+            _LOGGER.error("Failed to parse login response: %s", e)
+            return None
+
+    except requests.RequestException as e:
+        _LOGGER.error("Login request failed: %s", e)
+        return None
 
 
-# --- DATA FETCH FUNCTION ---
 def fetch_water_data(token, username, customer_id, meter_number):
+    """Fetch water consumption data from City4U API.
+
+    Args:
+        token (str): Authentication token
+        username (str): City4U username
+        customer_id (str): Customer ID number
+        meter_number (str): Water meter number
+
+    Returns:
+        dict or None: Water consumption data if successful, None otherwise
+    """
     headers = {
         "customerID": customer_id,
         "CustomerSite": customer_id,
@@ -81,36 +109,42 @@ def fetch_water_data(token, username, customer_id, meter_number):
         "token": token,
     }
 
-    data_url = DATA_URL_TEMPLATE.format(
-        customer_id=customer_id, meter_number=meter_number
-    )
+    data_url = DATA_URL_TEMPLATE % (customer_id, meter_number)
     session = requests.Session()  # Use a simple session for now
 
     try:
         _LOGGER.info("Fetching water consumption data...")
         response = session.get(data_url, headers=headers, verify=False, timeout=30)
-        _LOGGER.debug(f"Data response status: {response.status_code}")
-        _LOGGER.debug(f"Data response headers: {dict(response.headers)}")
+        _LOGGER.debug("Data response status: %s", response.status_code)
+        _LOGGER.debug("Data response headers: %s", dict(response.headers))
 
-        if response.status_code == 200:
-            try:
-                return response.json()
-            except json.JSONDecodeError:
-                _LOGGER.error("Data response is not JSON")
-                _LOGGER.error(f"Data response text: {response.text[:500]}...")
-                return None
-        else:
-            _LOGGER.error(f"Data fetch failed with status {response.status_code}")
-            _LOGGER.error(f"Response: {response.text[:500]}...")
+        if response.status_code != 200:
+            _LOGGER.error("Data fetch failed with status %s", response.status_code)
+            _LOGGER.error("Response: %s...", response.text[:500])
             return None
-    except Exception as e:
-        _LOGGER.error(f"Data fetch failed: {e}")
+
+        try:
+            return response.json()
+        except json.JSONDecodeError:
+            _LOGGER.error("Data response is not JSON")
+            _LOGGER.error("Data response text: %s...", response.text[:500])
+            return None
+
+    except requests.RequestException as e:
+        _LOGGER.error("Data fetch failed: %s", e)
         return None
 
 
-# --- SAVE DATA FUNCTION ---
 def save_water_data(data, output_file):
-    """Save water consumption data to JSON file with timestamp"""
+    """Save water consumption data to JSON file with timestamp.
+
+    Args:
+        data (dict): Water consumption data to save
+        output_file (str): Path to output JSON file
+
+    Returns:
+        bool: True if successful, False otherwise
+    """
     try:
         # Add timestamp to the data
         output_data = {"timestamp": datetime.now().isoformat(), "data": data}
@@ -118,10 +152,10 @@ def save_water_data(data, output_file):
         with open(output_file, "w", encoding="utf-8") as f:
             json.dump(output_data, f, ensure_ascii=False, indent=2)
 
-        _LOGGER.info(f"✓ Water consumption data saved to {output_file}")
+        _LOGGER.info("✓ Water consumption data saved to %s", output_file)
         return True
-    except Exception as e:
-        _LOGGER.error(f"✗ Failed to save data to file: {e}")
+    except (IOError, OSError) as e:
+        _LOGGER.error("✗ Failed to save data to file: %s", e)
         return False
 
 
@@ -147,29 +181,38 @@ def format_hebrew_for_display(text):
 
 
 def get_customer_list():
-    """Fetch the list of customers from the City4U API."""
+    """Fetch the list of customers from the City4U API.
+
+    Returns:
+        list or None: List of customers if successful, None otherwise
+    """
     try:
         _LOGGER.info("Fetching customer list...")
         response = requests.get(CUSTOMERS_URL, verify=False, timeout=30)
 
-        if response.status_code == 200:
-            try:
-                customers = response.json()
-                return customers
-            except json.JSONDecodeError:
-                _LOGGER.error("Customer data response is not valid JSON")
-                _LOGGER.error(f"Response text: {response.text[:500]}...")
-                return None
-        else:
-            _LOGGER.error(f"Customer fetch failed with status {response.status_code}")
+        if response.status_code != 200:
+            _LOGGER.error("Customer fetch failed with status %s", response.status_code)
             return None
-    except Exception as e:
-        _LOGGER.error(f"Failed to fetch customer list: {e}")
+
+        try:
+            customers = response.json()
+            return customers
+        except json.JSONDecodeError:
+            _LOGGER.error("Customer data response is not valid JSON")
+            _LOGGER.error("Response text: %s...", response.text[:500])
+            return None
+
+    except requests.RequestException as e:
+        _LOGGER.error("Failed to fetch customer list: %s", e)
         return None
 
 
 def select_customer():
-    """Let the user select their customer (city) from the list."""
+    """Let the user select their customer (city) from the list.
+
+    Returns:
+        int or None: Selected customer ID if successful, None otherwise
+    """
     customers = get_customer_list()
 
     if not customers:
@@ -210,17 +253,24 @@ def select_customer():
 
                 print(f"\nSelected city ID: {customer_id} ({hebrew_display})")
                 return customer_id
-            else:
-                print(f"Please enter a number between 1 and {len(sorted_customers)}")
+
+            print(f"Please enter a number between 1 and {len(sorted_customers)}")
         except ValueError:
             print("Please enter a valid number")
-        except Exception as e:
-            _LOGGER.error(f"Error during customer selection: {e}")
+        except KeyboardInterrupt:
+            print("\nSelection cancelled")
             return None
 
 
 def create_config_file(config):
-    """Create a configuration file with the provided settings."""
+    """Create a configuration file with the provided settings.
+
+    Args:
+        config (dict): Configuration to save
+
+    Returns:
+        bool: True if successful, False otherwise
+    """
     try:
         # Create directory if it doesn't exist
         config_dir = os.path.dirname(CONFIG_FILE)
@@ -230,15 +280,19 @@ def create_config_file(config):
         with open(CONFIG_FILE, "w", encoding="utf-8") as f:
             json.dump(config, f, ensure_ascii=False, indent=2)
 
-        _LOGGER.info(f"Configuration saved to {CONFIG_FILE}")
+        _LOGGER.info("Configuration saved to %s", CONFIG_FILE)
         return True
-    except Exception as e:
-        _LOGGER.error(f"Failed to create configuration file: {e}")
+    except (IOError, OSError) as e:
+        _LOGGER.error("Failed to create configuration file: %s", e)
         return False
 
 
 def setup_config():
-    """Walk through the setup process to create a configuration file."""
+    """Walk through the setup process to create a configuration file.
+
+    Returns:
+        dict or None: Configuration if successful, None otherwise
+    """
     print("\n=== City4U Water Consumption Setup ===")
     print("Let's configure your City4U water consumption account.")
 
@@ -282,31 +336,37 @@ def setup_config():
     if create_config_file(config):
         print(f"\nSetup complete! Configuration saved to {CONFIG_FILE}")
         return config
-    else:
-        print(
-            "\nFailed to save configuration. You'll need to provide credentials manually."
-        )
-        return None
+
+    print("\nFailed to save configuration. You'll need to provide credentials manually.")
+    return None
 
 
 def load_config():
-    """Load configuration from file or run setup if it doesn't exist."""
+    """Load configuration from file or run setup if it doesn't exist.
+
+    Returns:
+        dict or None: Configuration if successful, None otherwise
+    """
     if os.path.exists(CONFIG_FILE):
         try:
             with open(CONFIG_FILE, "r", encoding="utf-8") as f:
                 config = json.load(f)
-            _LOGGER.info(f"Configuration loaded from {CONFIG_FILE}")
+            _LOGGER.info("Configuration loaded from %s", CONFIG_FILE)
             return config
-        except Exception as e:
-            _LOGGER.error(f"Failed to load configuration: {e}")
+        except (IOError, json.JSONDecodeError) as e:
+            _LOGGER.error("Failed to load configuration: %s", e)
             return None
-    else:
-        _LOGGER.info("No configuration file found. Starting setup...")
-        return setup_config()
+
+    _LOGGER.info("No configuration file found. Starting setup...")
+    return setup_config()
 
 
 def parse_arguments():
-    """Parse command line arguments."""
+    """Parse command line arguments.
+
+    Returns:
+        argparse.Namespace: Parsed command line arguments
+    """
     parser = argparse.ArgumentParser(
         description="Fetch water consumption data from City4U API"
     )
@@ -337,24 +397,23 @@ def parse_arguments():
 
 
 def main():
-    """Main function to fetch and save water consumption data."""
+    """Main function to fetch and save water consumption data.
+    
+    Returns:
+        int: Exit code (0 for success, 1 for failure)
+    """
     args = parse_arguments()
+    exit_code = 1  # Default to error state
 
     # Set up logging
     log_level = logging.DEBUG if args.debug else logging.INFO
     logging.basicConfig(level=log_level)
 
-    # If setup flag is provided, run setup regardless of existing config
-    if args.setup:
-        config = setup_config()
-        if not config:
-            return 1
-    else:
-        # Load configuration or run setup if not found
-        config = load_config()
-        if not config:
-            _LOGGER.error("Failed to load or create configuration")
-            return 1
+    # Get configuration (from setup or existing file)
+    config = setup_config() if args.setup else load_config()
+    if not config:
+        _LOGGER.error("Failed to load or create configuration")
+        return exit_code
 
     # Command-line arguments override config file
     username = args.username or config.get("username")
@@ -365,36 +424,37 @@ def main():
         "output_file", "water_consumption_data.json"
     )
 
+    # Validate required parameters
     if not all([username, password, customer_id]):
         _LOGGER.error("Missing required parameters (username, password, customer_id)")
-        return 1
+        return exit_code
 
-    # Get token
-    token = get_token(username, password, str(customer_id))
-    if not token:
-        _LOGGER.error("Failed to obtain authentication token")
-        return 1
-
-    _LOGGER.info(f"Successfully obtained token: {token}")
-
+    # Authentication and data retrieval process
     try:
+        # Get token
+        token = get_token(username, password, str(customer_id))
+        if not token:
+            _LOGGER.error("Failed to obtain authentication token")
+            return exit_code
+
+        _LOGGER.info("Successfully obtained token: %s", token)
+
         # Fetch water data
         data = fetch_water_data(token, username, str(customer_id), meter_number)
         if not data:
             _LOGGER.error("Failed to retrieve water consumption data")
-            return 1
+            return exit_code
 
         _LOGGER.info("Successfully fetched water consumption data")
 
         # Save data
-        if not save_water_data(data, output_file):
+        if save_water_data(data, output_file):
+            exit_code = 0  # Success
+        else:
             _LOGGER.error("Failed to save water consumption data")
-            return 1
-
-        return 0
-    except Exception as e:
-        _LOGGER.error(f"Failed to fetch water data: {e}")
-        return 1
+    except requests.RequestException as e:
+        _LOGGER.error("Failed to fetch water data: %s", e)
+    return exit_code
 
 
 # --- MAIN EXECUTION ---
