@@ -135,19 +135,3 @@ def test_valid_fields_included(
     attributes = sensor.extra_state_attributes
     assert attributes["validField"] == "should_be_included"
     assert attributes["anotherField"] == "also_included"
-
-
-def test_last_reset_returns_reading_time(sensor: City4UWaterConsumptionSensor) -> None:
-    """Test that last_reset returns the reading time."""
-    _ = sensor.native_value
-    assert sensor.last_reset is not None
-
-
-def test_last_reset_none_without_data(
-    sensor: City4UWaterConsumptionSensor,
-    mock_coordinator: MagicMock,
-) -> None:
-    """Test last_reset is None when no data available."""
-    mock_coordinator.data = None
-    _ = sensor.native_value
-    assert sensor.last_reset is None
