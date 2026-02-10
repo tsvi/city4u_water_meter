@@ -8,13 +8,18 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
 from custom_components.city4u.config_flow import CannotConnect, InvalidAuth
-from custom_components.city4u.const import CONF_CUSTOMER_ID, CONF_METER_NUMBER, DOMAIN
+from custom_components.city4u.const import (
+    CONF_CUSTOMER_ID,
+    CONF_METER_NUMBER,
+    CONF_MUNICIPALITY,
+    DOMAIN,
+)
 
 # Test input data
 VALID_USER_INPUT = {
     CONF_USERNAME: "test_user",
     CONF_PASSWORD: "test_password",
-    CONF_CUSTOMER_ID: "123456",
+    CONF_MUNICIPALITY: "onecity",
     CONF_METER_NUMBER: "test_meter",
 }
 
@@ -44,7 +49,12 @@ async def test_create_entry_success(hass: HomeAssistant) -> None:
 
     assert result["type"] == FlowResultType.CREATE_ENTRY
     assert result["title"] == "Water Meter test_meter"
-    assert result["data"] == VALID_USER_INPUT
+    # Municipality should be converted to customer_id in stored data
+    assert result["data"][CONF_CUSTOMER_ID] == "999999"
+    assert result["data"][CONF_USERNAME] == "test_user"
+    assert result["data"][CONF_PASSWORD] == "test_password"
+    assert result["data"][CONF_METER_NUMBER] == "test_meter"
+    assert CONF_MUNICIPALITY not in result["data"]
 
 
 @pytest.mark.parametrize(
@@ -90,7 +100,7 @@ async def test_meter_number_defaults_to_username(hass: HomeAssistant) -> None:
     test_data = {
         CONF_USERNAME: "test_user",
         CONF_PASSWORD: "test_password",
-        CONF_CUSTOMER_ID: "123456",
+        CONF_MUNICIPALITY: "onecity",
         CONF_METER_NUMBER: "",
     }
 

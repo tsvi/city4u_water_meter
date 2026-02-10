@@ -195,9 +195,3 @@ class City4UWaterConsumptionSensor(CoordinatorEntity, SensorEntity):
                     attributes[key] = value
 
         return attributes
-
-    @property
-    def last_reset(self) -> datetime | None:
-        """Return the time when the sensor was last reset."""
-        # Return the reading time to help with graph display
-        return self._last_reading_time
