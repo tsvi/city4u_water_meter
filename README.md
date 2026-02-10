@@ -8,7 +8,7 @@
 
 <a href="https://www.buymeacoffee.com/tsvi" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 150px !important;" ></a>
 
-![City4U Logo](custom_components/city4u/icons/city4u_logo.png)
+![City4U Logo](logo.png)
 
 A Home Assistant custom integration for fetching water consumption data from the City4U API. Monitor your water usage directly from your Home Assistant dashboard.
 
