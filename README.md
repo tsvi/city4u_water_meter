@@ -223,13 +223,16 @@ To create a new release:
    
    # For breaking changes (1.0.1 -> 2.0.0)
    pdm run release major
+   
+   # Dry-run to preview changes without pushing
+   pdm run release -n patch
    ```
 
 The `release` command will:
 - Bump the version in `pyproject.toml` and `manifest.json`
 - Create a git commit with the version change
 - Create a git tag (e.g., `v1.0.2`)
-- Push the commit and tag to GitHub
+- Push the commit and tag to GitHub (skipped with `-n` or `--dry-run`)
 
 The GitHub Actions workflow will then automatically:
 - Run all tests and code quality checks
