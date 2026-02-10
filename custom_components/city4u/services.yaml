@@ -1,0 +1,9 @@
+# Services for City4U integration
+
+force_update:
+  name: Force Update
+  description: Force an immediate update of City4U water consumption data.
+
+import_historical:
+  name: Import Historical Data
+  description: Import all available historical water consumption data into Home Assistant's long-term statistics. This allows you to view historical consumption data in the energy dashboard and graphs.

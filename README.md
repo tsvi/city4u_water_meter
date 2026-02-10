@@ -1,6 +1,82 @@
-# Water Consumption Data Fetcher
+# City4U Water Consumption for Home Assistant
 
-A utility for fetching water consumption data from the City4U API and storing it locally. This tool helps you retrieve and track your water usage information automatically.
+[![GitHub Release][releases-shield]][releases]
+[![GitHub Activity][commits-shield]][commits]
+[![License][license-shield]](LICENSE)
+[![hacs][hacsbadge]][hacs]
+[![Project Maintenance][maintenance-shield]][user_profile]
+[![codecov][codecov-shield]][codecov]
+
+![City4U Logo](https://city4u.co.il/PortalServicesSite/images/_logos/logo_0.jpg)
+
+A Home Assistant custom integration for fetching water consumption data from the City4U API. Monitor your water usage directly from your Home Assistant dashboard.
+
+## Quick Install
+
+### HACS (Recommended)
+
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=tsvi&repository=city4u_water_meter&category=integration)
+
+1. Click the button above to add the repository to HACS
+2. Install "City4U Water Consumption"
+3. Restart Home Assistant
+4. Add the integration via **Settings** → **Devices & Services** → **Add Integration** → Search for "City4U"
+
+For detailed installation and configuration instructions, see the [custom component README](custom_components/city4u/README.md).
+
+---
+
+## Alternative: Using Home Assistant REST sensor
+
+If you prefer to use [Home Assistant's REST sensor](https://www.home-assistant.io/integrations/sensor.rest/), that's also possible.
+
+Add the following to your `configuration.yaml`:
+
+```yaml
+# REST sensor for water consumption data that fetches its own token
+sensor:
+  - platform: rest
+    name: "Water Auth Token"
+    unique_id: "water_auth_token"
+    value_template: "{{ value_json.UserToken }}"
+    resource: https://city4u.co.il/WebApiUsersManagement/v1/UsrManagements/LoginUser
+    method: POST
+    headers:
+      content-type: "application/x-www-form-urlencoded"
+    payload: !secret city4u_auth_payload
+    scan_interval: 43200 # 12 hours
+
+# The water consumption sensor using the dynamic token
+  - platform: rest
+    name: Water Consumption Dynamic
+    unique_id: "city4u-water-consumption"
+    resource: !secret city4u_mone_url
+    headers:
+      customerID: !secret city4u_municipality
+      CustomerSite: !secret city4u_municipality
+      token: "{{ states('sensor.water_auth_token') }}"
+      UserName: !secret city4u_user_name
+    value_template: "{{ value_json[-1]['totalWaterDataWithMultiplier'] }}"
+    unit_of_measurement: "m³"
+    scan_interval: 3600
+    json_attributes:
+      - readingTime
+      - meterNumber
+```
+
+You'll need to add the following to your `secrets.yaml`:
+
+```yaml
+city4u_auth_payload: "ServiceName=LoginUser&UserName=<ID number>&Password=<password>&token=undefined&customerID=<City ID>&CustomerSite=<City Site>"
+city4u_municipality: <City ID>
+city4u_user_name: <ID number>
+city4u_password: <Password>
+city4u_mone_url: https://city4u.co.il/WebApiCity4u/v1/WaterConsumption/ReadingMoneWater/<City ID>/<ID number>
+```
+
+The `ID Number` is usually your Teudat Zehut. I'm not sure about the difference between `City ID` and `City Site` for my city both are the same.
+
+The integration below puts this all together as a comprehensive integration that can be configured from the GUI.
 
 ## Features
 
@@ -355,3 +431,17 @@ The following municipalities use the City4U system and are probably supported by
 ## License
 
 MIT
+
+---
+
+[commits-shield]: https://img.shields.io/github/commit-activity/y/tsvi/city4u_water_meter.svg?style=for-the-badge
+[commits]: https://github.com/tsvi/city4u_water_meter/commits/master
+[hacs]: https://github.com/hacs/integration
+[hacsbadge]: https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge
+[license-shield]: https://img.shields.io/github/license/tsvi/city4u_water_meter.svg?style=for-the-badge
+[maintenance-shield]: https://img.shields.io/badge/maintainer-%40tsvi-blue.svg?style=for-the-badge
+[releases-shield]: https://img.shields.io/github/release/tsvi/city4u_water_meter.svg?style=for-the-badge
+[releases]: https://github.com/tsvi/city4u_water_meter/releases
+[user_profile]: https://github.com/tsvi
+[codecov-shield]: https://img.shields.io/codecov/c/github/tsvi/city4u_water_meter?style=for-the-badge
+[codecov]: https://codecov.io/gh/tsvi/city4u_water_meter
