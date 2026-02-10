@@ -208,21 +208,21 @@ pylint custom_components/
 
 ### Releasing a New Version
 
-This project uses [bump2version](https://github.com/c4urself/bump2version) to manage releases. The configuration is in `pyproject.toml` under `[tool.bumpversion]`.
+This project uses [bump-my-version](https://github.com/callowayproject/bump-my-version) to manage releases. The configuration is in `pyproject.toml` under `[tool.bumpversion]`.
 
 To create a new release:
 
 1. Ensure all changes are committed and pushed
-2. Run bump2version with the appropriate part (patch/minor/major):
+2. Run bump-my-version with the appropriate part (patch/minor/major):
    ```bash
    # For bug fixes (1.0.1 -> 1.0.2)
-   pdm run bump2version patch
+   pdm run bump-my-version bump patch
    
    # For new features (1.0.1 -> 1.1.0)
-   pdm run bump2version minor
+   pdm run bump-my-version bump minor
    
    # For breaking changes (1.0.1 -> 2.0.0)
-   pdm run bump2version major
+   pdm run bump-my-version bump major
    ```
 
 3. Push the changes and tags:
