@@ -5,7 +5,7 @@
 groups = ["default", "dev"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:658cd5d661f18d89421022c194a97f94948cfe50c894592f3d7f48caf6e16763"
+content_hash = "sha256:5feaaa6b623a894cef189f843eec0cc8da4e1b055ef0ce4808743c64b202ad34"
 
 [[metadata.targets]]
 requires_python = ">=3.13.2"
@@ -665,6 +665,17 @@ groups = ["dev"]
 files = [
     {file = "btsocket-0.3.0-py2.py3-none-any.whl", hash = "sha256:949821c1b580a88e73804ad610f5173d6ae258e7b4e389da4f94d614344f1a9c"},
     {file = "btsocket-0.3.0.tar.gz", hash = "sha256:7ea495de0ff883f0d9f8eea59c72ca7fed492994df668fe476b84d814a147a0d"},
+]
+
+[[package]]
+name = "bump2version"
+version = "1.0.1"
+requires_python = ">=3.5"
+summary = "Version-bump your software with a single command!"
+groups = ["dev"]
+files = [
+    {file = "bump2version-1.0.1-py2.py3-none-any.whl", hash = "sha256:37f927ea17cde7ae2d7baf832f8e80ce3777624554a653006c9144f8017fe410"},
+    {file = "bump2version-1.0.1.tar.gz", hash = "sha256:762cb2bfad61f4ec8e2bdf452c7c267416f8c70dd9ecb1653fd0bbb01fa936e6"},
 ]
 
 [[package]]
