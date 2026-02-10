@@ -212,29 +212,30 @@ This project uses [bump-my-version](https://github.com/callowayproject/bump-my-v
 
 To create a new release:
 
-1. Ensure all changes are committed and pushed
-2. Run bump-my-version with the appropriate part (patch/minor/major):
+1. Ensure all changes are committed
+2. Run the release command:
    ```bash
    # For bug fixes (1.0.1 -> 1.0.2)
-   pdm run bump-my-version bump patch
+   pdm run release patch
    
    # For new features (1.0.1 -> 1.1.0)
-   pdm run bump-my-version bump minor
+   pdm run release minor
    
    # For breaking changes (1.0.1 -> 2.0.0)
-   pdm run bump-my-version bump major
+   pdm run release major
    ```
 
-3. Push the changes and tags:
-   ```bash
-   git push && git push --tags
-   ```
+The `release` command will:
+- Bump the version in `pyproject.toml` and `manifest.json`
+- Create a git commit with the version change
+- Create a git tag (e.g., `v1.0.2`)
+- Push the commit and tag to GitHub
 
-4. The GitHub Actions workflow will automatically:
-   - Run all tests and code quality checks
-   - Verify version consistency
-   - Create a GitHub release
-   - Make the new version available in HACS
+The GitHub Actions workflow will then automatically:
+- Run all tests and code quality checks
+- Verify version consistency
+- Create a GitHub release with auto-generated notes
+- Make the new version available in HACS
 
 ## Contributing
 

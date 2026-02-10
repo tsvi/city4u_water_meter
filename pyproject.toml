@@ -34,6 +34,9 @@ build-backend = "pdm.backend"
 [tool.pdm]
 distribution = true
 
+[tool.pdm.scripts]
+release = {shell = "bump-my-version bump \"$@\" && git push && git push --tags", help = "Bump version and push (usage: pdm run release patch|minor|major)"}
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
