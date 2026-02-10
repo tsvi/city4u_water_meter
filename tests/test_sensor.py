@@ -42,8 +42,9 @@ def test_device_info(sensor: City4UWaterConsumptionSensor) -> None:
     """Test device info includes correct identifiers."""
     device_info = sensor.device_info
     assert device_info is not None
-    assert device_info["name"] == "Water Meter test_meter"
+    assert device_info["name"] == "Water Meter test_meter - Unknown"
     assert device_info["manufacturer"] == "City4U"
+    assert device_info["model"] == "Unknown (ID: 123456)"
     assert any(DOMAIN in str(identifier) for identifier in device_info["identifiers"])
 
 
