@@ -1,6 +1,6 @@
 [project]
 name = "city4u_water_meter"
-version = "1.0.0"
+version = "1.0.1"
 description = "Home Assistant custom component for City4U water consumption monitoring"
 authors = [
     {name = "Tsvi Mostovicz", email = "ttmost@gmail.com"},
