@@ -208,33 +208,41 @@ pylint custom_components/
 
 ### Releasing a New Version
 
-This project uses [bump2version](https://github.com/c4urself/bump2version) to manage releases. The configuration is in `pyproject.toml` under `[tool.bumpversion]`.
+This project uses [bump-my-version](https://github.com/callowayproject/bump-my-version) to manage releases. The configuration is in `pyproject.toml` under `[tool.bumpversion]`.
 
 To create a new release:
 
-1. Ensure all changes are committed and pushed
-2. Run bump2version with the appropriate part (patch/minor/major):
+1. Ensure all changes are committed
+2. Run the release command:
    ```bash
    # For bug fixes (1.0.1 -> 1.0.2)
-   pdm run bump2version patch
+   pdm run release patch
    
    # For new features (1.0.1 -> 1.1.0)
-   pdm run bump2version minor
+   pdm run release minor
    
    # For breaking changes (1.0.1 -> 2.0.0)
-   pdm run bump2version major
+   pdm run release major
+   
+   # Dry-run to preview changes without pushing
+   pdm run release -n patch
+   # Or with verbose output to see detailed changes
+   pdm run release -n --verbose patch
    ```
 
-3. Push the changes and tags:
-   ```bash
-   git push && git push --tags
-   ```
+The `release` command will:
+- Bump the version in `pyproject.toml` and `manifest.json`
+- Create a git commit with the version change
+- Create a git tag (e.g., `v1.0.2`)
+- Push the commit and tag to GitHub
 
-4. The GitHub Actions workflow will automatically:
-   - Run all tests and code quality checks
-   - Verify version consistency
-   - Create a GitHub release
-   - Make the new version available in HACS
+**Note:** In dry-run mode (`-n` or `--dry-run`), bump-my-version shows what *would* change without modifying any files or pushing to Git.
+
+The GitHub Actions workflow will then automatically:
+- Run all tests and code quality checks
+- Verify version consistency
+- Create a GitHub release with auto-generated notes
+- Make the new version available in HACS
 
 ## Contributing
 
