@@ -226,13 +226,17 @@ To create a new release:
    
    # Dry-run to preview changes without pushing
    pdm run release -n patch
+   # Or with verbose output to see detailed changes
+   pdm run release -n --verbose patch
    ```
 
 The `release` command will:
 - Bump the version in `pyproject.toml` and `manifest.json`
 - Create a git commit with the version change
 - Create a git tag (e.g., `v1.0.2`)
-- Push the commit and tag to GitHub (skipped with `-n` or `--dry-run`)
+- Push the commit and tag to GitHub
+
+**Note:** In dry-run mode (`-n` or `--dry-run`), bump-my-version shows what *would* change without modifying any files or pushing to Git.
 
 The GitHub Actions workflow will then automatically:
 - Run all tests and code quality checks
