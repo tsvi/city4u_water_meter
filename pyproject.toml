@@ -23,6 +23,7 @@ dev = [
     "pytest-cov>=7.0.0",
     "pytest-homeassistant-custom-component>=0.13.314",
     "aiohttp>=3.13.3",
+    "playwright>=1.58.0",
 ]
 [build-system]
 requires = ["pdm-backend"]

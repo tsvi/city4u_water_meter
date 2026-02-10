@@ -11,9 +11,15 @@ from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.selector import (
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
+)
 
 from .api import City4UApiClient, City4UCredentials
-from .const import CONF_CUSTOMER_ID, CONF_METER_NUMBER, DOMAIN
+from .const import CONF_CUSTOMER_ID, CONF_METER_NUMBER, CONF_MUNICIPALITY, DOMAIN
+from .municipalities import MUNICIPALITIES_SORTED_HE
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -63,13 +69,31 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # pylint: disable=a
 
     VERSION = 1
 
+    def __init__(self) -> None:
+        """Initialize the config flow."""
+        self._municipality_map: dict[str, str] = {}
+
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Handle the initial step."""
         errors = {}
 
+        # Create municipality selector options on first call
+        if not self._municipality_map:
+            self._municipality_map = {
+                str(m.name_he): str(m.customer_id) for m in MUNICIPALITIES_SORTED_HE
+            }
+
         if user_input is not None:
+            # Convert municipality selection to customer_id
+            if CONF_MUNICIPALITY in user_input:
+                municipality_label = user_input[CONF_MUNICIPALITY]
+                user_input[CONF_CUSTOMER_ID] = self._municipality_map[
+                    municipality_label
+                ]
+                del user_input[CONF_MUNICIPALITY]
+
             # Default meter number to username if not provided
             if not user_input.get(CONF_METER_NUMBER):
                 user_input[CONF_METER_NUMBER] = user_input[CONF_USERNAME]
@@ -94,13 +118,21 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # pylint: disable=a
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
 
+        # Create municipality selector options
+        municipality_options = list(self._municipality_map.keys())
+
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
                 {
                     vol.Required(CONF_USERNAME): str,
                     vol.Required(CONF_PASSWORD): str,
-                    vol.Required(CONF_CUSTOMER_ID): str,
+                    vol.Required(CONF_MUNICIPALITY): SelectSelector(
+                        SelectSelectorConfig(
+                            options=municipality_options,
+                            mode=SelectSelectorMode.DROPDOWN,
+                        )
+                    ),
                     vol.Optional(CONF_METER_NUMBER): str,
                 }
             ),

@@ -2,24 +2,25 @@
   "config": {
     "step": {
       "user": {
-        "title": "Connect to City4U",
-        "description": "Set up a City4U Water Consumption integration. You will need your City4U username, password, customer ID and meter number.",
+        "title": "City4U Water Consumption Setup",
+        "description": "Enter your City4U credentials. Note: Use your permanent password, not a temporary SMS code.",
         "data": {
-          "username": "Username",
+          "username": "Username (ID Number)",
           "password": "Password",
-          "customer_id": "Customer ID (Municipality Code)",
+          "municipality": "Municipality",
           "meter_number": "Meter Number (leave blank to use username as default)"
         }
       }
     },
     "error": {
-      "cannot_connect": "Failed to connect",
-      "invalid_auth": "Invalid authentication",
-      "cannot_fetch_data": "Failed to fetch water data",
-      "unknown": "Unexpected error"
+      "cannot_connect": "Failed to connect to City4U server. Please check your internet connection and try again.",
+      "invalid_auth": "Invalid username or password. Make sure you're using your permanent password, not a temporary SMS code.",
+      "cannot_fetch_data": "Failed to fetch water consumption data. Your meter may not be registered with City4U yet.",
+      "unknown": "An unexpected error occurred. Please try again."
     },
     "abort": {
       "already_configured": "This meter is already configured"
     }
   }
 }
+

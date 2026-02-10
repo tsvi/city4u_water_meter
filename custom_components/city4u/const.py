@@ -6,6 +6,7 @@ DOMAIN = "city4u"
 # Configuration and options
 CONF_CUSTOMER_ID = "customer_id"
 CONF_METER_NUMBER = "meter_number"
+CONF_MUNICIPALITY = "municipality"
 
 # API URLs
 LOGIN_URL = "https://city4u.co.il/WebApiUsersManagement/v1/UsrManagements/LoginUser"
