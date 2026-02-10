@@ -1,6 +1,6 @@
 [project]
 name = "city4u_water_meter"
-version = "1.0.1"
+version = "1.0.2"
 description = "Home Assistant custom component for City4U water consumption monitoring"
 authors = [
     {name = "Tsvi Mostovicz", email = "ttmost@gmail.com"},
@@ -56,7 +56,7 @@ ignore_missing_imports = true
 profile = "black"
 
 [tool.bumpversion]
-current_version = "1.0.1"
+current_version = "1.0.2"
 commit = true
 tag = true
 tag_name = "v{new_version}"
