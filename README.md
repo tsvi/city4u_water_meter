@@ -151,6 +151,91 @@ city4u_mone_url: https://city4u.co.il/WebApiCity4u/v1/WaterConsumption/ReadingMo
 
 **Note:** The `ID Number` is usually your Israeli ID number (Teudat Zehut). The `City ID` and `City Site` are typically the same value (your municipality's customer ID).
 
+## Development
+
+### Setting Up Development Environment
+
+This project uses [PDM](https://pdm-project.org/) for dependency management.
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/tsvi/city4u_water_meter.git
+   cd city4u_water_meter
+   ```
+
+2. Install PDM (if not already installed):
+   ```bash
+   pip install pdm
+   ```
+
+3. Install dependencies:
+   ```bash
+   pdm install
+   ```
+
+4. Install pre-commit hooks:
+   ```bash
+   pre-commit install
+   ```
+
+### Running Tests
+
+```bash
+# Run all tests
+pytest
+
+# Run tests with coverage
+pytest --cov=custom_components/city4u --cov-report=term
+```
+
+### Code Quality
+
+The project uses several tools to maintain code quality:
+
+- **Ruff**: Linting and formatting
+- **isort**: Import sorting
+- **mypy**: Type checking
+- **pylint**: Additional linting
+
+Run all checks:
+```bash
+ruff check .
+ruff format .
+isort .
+mypy --strict custom_components/
+pylint custom_components/
+```
+
+### Releasing a New Version
+
+This project uses [bump2version](https://github.com/c4urself/bump2version) to manage releases. The configuration is in `pyproject.toml` under `[tool.bumpversion]`.
+
+To create a new release:
+
+1. Ensure all changes are committed and pushed
+2. Run bump2version with the appropriate part (patch/minor/major):
+   ```bash
+   # For bug fixes (1.0.1 -> 1.0.2)
+   pdm run bump2version patch
+   
+   # For new features (1.0.1 -> 1.1.0)
+   pdm run bump2version minor
+   
+   # For breaking changes (1.0.1 -> 2.0.0)
+   pdm run bump2version major
+   ```
+
+3. Push the changes and tags:
+   ```bash
+   git push && git push --tags
+   ```
+
+4. The GitHub Actions workflow will automatically:
+   - Run all tests and code quality checks
+   - Verify version consistency
+   - Create a GitHub release
+   - Make the new version available in HACS
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.

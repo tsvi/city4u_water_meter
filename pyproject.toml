@@ -1,6 +1,6 @@
 [project]
 name = "city4u_water_meter"
-version = "1.0.0"
+version = "1.0.1"
 description = "Home Assistant custom component for City4U water consumption monitoring"
 authors = [
     {name = "Tsvi Mostovicz", email = "ttmost@gmail.com"},
@@ -24,6 +24,7 @@ dev = [
     "pytest-homeassistant-custom-component>=0.13.314",
     "aiohttp>=3.13.3",
     "playwright>=1.58.0",
+    "bump2version>=1.0.1",
 ]
 [build-system]
 requires = ["pdm-backend"]
@@ -50,3 +51,20 @@ ignore_missing_imports = true
 
 [tool.isort]
 profile = "black"
+
+[tool.bumpversion]
+current_version = "1.0.1"
+commit = true
+tag = true
+tag_name = "v{new_version}"
+message = "Bump version: {current_version} → {new_version}"
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+search = 'version = "{current_version}"'
+replace = 'version = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "custom_components/city4u/manifest.json"
+search = '"version": "{current_version}"'
+replace = '"version": "{new_version}"'
