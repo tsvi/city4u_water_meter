@@ -155,18 +155,25 @@ city4u_mone_url: https://city4u.co.il/WebApiCity4u/v1/WaterConsumption/ReadingMo
 
 ### Setting Up Development Environment
 
+This project uses [PDM](https://pdm-project.org/) for dependency management.
+
 1. Clone the repository:
    ```bash
    git clone https://github.com/tsvi/city4u_water_meter.git
    cd city4u_water_meter
    ```
 
-2. Install development dependencies:
+2. Install PDM (if not already installed):
    ```bash
-   pip install -e .[dev]
+   pip install pdm
    ```
 
-3. Install pre-commit hooks:
+3. Install dependencies:
+   ```bash
+   pdm install
+   ```
+
+4. Install pre-commit hooks:
    ```bash
    pre-commit install
    ```
@@ -201,36 +208,33 @@ pylint custom_components/
 
 ### Releasing a New Version
 
-This project uses [bump2version](https://github.com/c4urself/bump2version) to manage releases. To create a new release:
+This project uses [bump2version](https://github.com/c4urself/bump2version) to manage releases. The configuration is in `pyproject.toml` under `[tool.bumpversion]`.
+
+To create a new release:
 
 1. Ensure all changes are committed and pushed
 2. Run bump2version with the appropriate part (patch/minor/major):
    ```bash
    # For bug fixes (1.0.1 -> 1.0.2)
-   pip install bump2version
-   bump2version patch
+   pdm run bump2version patch
    
    # For new features (1.0.1 -> 1.1.0)
-   bump2version minor
+   pdm run bump2version minor
    
    # For breaking changes (1.0.1 -> 2.0.0)
-   bump2version major
+   pdm run bump2version major
    ```
 
 3. Push the changes and tags:
    ```bash
-   git push
-   git push --tags
+   git push && git push --tags
    ```
 
 4. The GitHub Actions workflow will automatically:
    - Run all tests and code quality checks
+   - Verify version consistency
    - Create a GitHub release
    - Make the new version available in HACS
-
-**Note:** bump2version will automatically update version numbers in:
-- `pyproject.toml`
-- `custom_components/city4u/manifest.json`
 
 ## Contributing
 
