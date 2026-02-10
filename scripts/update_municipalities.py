@@ -440,12 +440,20 @@ Last updated: {verification_date}
 
 ## Municipality List
 
-| Customer ID | Hebrew Name |
-|------------|-------------|
+| Logo | Customer ID | Hebrew Name |
+|------|------------|-------------|
 """
 
     for muni in sorted_munis:
-        content += f"| {muni['customer_id']} | {muni['name_he']} |\n"
+        # Add logo column with consistent sizing (50x50 pixels)
+        logo_cell = ""
+        if muni.get("logo_url"):
+            logo_path = muni["logo_url"].replace(
+                "logos/", "custom_components/city4u/logos/"
+            )
+            logo_cell = f'<img src="{logo_path}" width="50" height="50" alt="Logo">'
+
+        content += f"| {logo_cell} | {muni['customer_id']} | {muni['name_he']} |\n"
 
     content += """
 
