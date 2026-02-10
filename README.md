@@ -2,10 +2,9 @@
 
 [![GitHub Release][releases-shield]][releases]
 [![GitHub Activity][commits-shield]][commits]
-[![License][license-shield]](LICENSE)
+![GitHub License](https://img.shields.io/github/license/tsvi/city4u_water_meter?style=for-the-badge)
 [![hacs][hacsbadge]][hacs]
 [![Project Maintenance][maintenance-shield]][user_profile]
-[![codecov][codecov-shield]][codecov]
 
 <a href="https://www.buymeacoffee.com/tsvi" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 150px !important;" ></a>
 
