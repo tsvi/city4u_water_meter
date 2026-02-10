@@ -30,6 +30,7 @@ from .const import (
     EXCLUDED_ATTRIBUTES_LOWER,
     ICON,
 )
+from .municipalities import get_municipality_by_id
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -107,12 +108,16 @@ class City4UWaterConsumptionSensor(CoordinatorEntity, SensorEntity):
         else:
             config_url = "https://city4u.co.il"
 
+        # Get municipality information
+        municipality = get_municipality_by_id(int(customer_id))
+        municipality_name = municipality.name_he if municipality else "Unknown"
+
         # Build device info with identifiers from API
         self._attr_device_info = DeviceInfo(
             identifiers=identifiers,
-            name=f"Water Meter {meter_number}",
+            name=f"Water Meter {meter_number} - {municipality_name}",
             manufacturer="City4U",
-            model="Water Consumption Meter",
+            model=f"{municipality_name} (ID: {customer_id})",
             configuration_url=config_url,
             serial_number=str(api_meter_number) if api_meter_number else None,
         )
