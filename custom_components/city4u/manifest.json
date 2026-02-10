@@ -1,6 +1,7 @@
 {
   "domain": "city4u",
   "name": "City4U Water Consumption",
+  "after_dependencies": ["recorder"],
   "codeowners": ["@tsvi"],
   "config_flow": true,
   "documentation": "https://github.com/tsvi/city4u_water_meter",
@@ -8,7 +9,6 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/tsvi/city4u_water_meter/issues",
   "requirements": [],
-  "after_dependencies": ["recorder"],
   "version": "1.0.1"
 }
 
