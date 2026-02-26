@@ -21,6 +21,9 @@ _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS = [Platform.SENSOR]
 
+# HTTP status codes that indicate invalid/rejected credentials
+_AUTH_FAILURE_STATUSES = (401, 403)
+
 # Integration can only be set up from config entries
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)  # pylint: disable=invalid-name
 
@@ -51,7 +54,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     try:
         await api.authenticate()
     except aiohttp.ClientResponseError as err:
-        if err.status in (401, 403):
+        if err.status in _AUTH_FAILURE_STATUSES:
             _LOGGER.error("Authentication rejected (status %s): %s", err.status, err)
             raise ConfigEntryAuthFailed("Invalid credentials") from err
         _LOGGER.error("Authentication failed: %s", err)
@@ -74,7 +77,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
             return await api.fetch_water_data()
         except aiohttp.ClientResponseError as err:
-            if err.status in (401, 403):
+            if err.status in _AUTH_FAILURE_STATUSES:
                 raise ConfigEntryAuthFailed(
                     f"Session expired or invalid credentials: {err}"
                 ) from err
