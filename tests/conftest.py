@@ -6,6 +6,7 @@ Pylint warnings disabled for this file:
 """
 # pylint: disable=redefined-outer-name,unused-argument
 
+import json
 from collections.abc import Generator
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -196,6 +197,8 @@ def create_mock_response(
     """Create a mock aiohttp response with proper async methods."""
     mock_response = MagicMock()
     mock_response.status = status
+    # If json_data is provided, serialize it to text so response.text() returns valid JSON
+    response_text = json.dumps(json_data) if json_data is not None else text
     mock_response.json = AsyncMock(return_value=json_data)
-    mock_response.text = AsyncMock(return_value=text)
+    mock_response.text = AsyncMock(return_value=response_text)
     return mock_response
