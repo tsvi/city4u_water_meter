@@ -1,5 +1,6 @@
 """City4U API client."""
 
+import json
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -76,6 +77,50 @@ class City4UApiClient:
         now = datetime.now()
         return self._token_expires_at > now + timedelta(minutes=5)
 
+    async def _parse_json_response(
+        self,
+        response: aiohttp.ClientResponse,
+        context: str,
+    ) -> Any:
+        """Read a response, enforce HTTP 200, and return parsed JSON.
+
+        Raises aiohttp.ClientResponseError with a descriptive message on any
+        failure so callers don't need to repeat this boilerplate.
+        """
+        text = await response.text()
+
+        if response.status != 200:
+            _LOGGER.error(
+                "%s failed with status %s: %s",
+                context,
+                response.status,
+                text[:500],
+            )
+            raise aiohttp.ClientResponseError(
+                response.request_info,
+                response.history,
+                status=response.status,
+                message=f"{context} failed: {text[:100]}...",
+            )
+
+        try:
+            return json.loads(text)
+        except (json.JSONDecodeError, ValueError) as json_err:
+            _LOGGER.error(
+                "%s response is not valid JSON (got %s). Response body: %s",
+                context,
+                response.content_type,
+                text[:500],
+            )
+            raise aiohttp.ClientResponseError(
+                response.request_info,
+                response.history,
+                status=response.status,
+                message=(
+                    f"{context} returned non-JSON response ({response.content_type})"
+                ),
+            ) from json_err
+
     async def authenticate(self) -> None:
         """Authenticate with City4U API."""
         # Use the exact payload format from the browser trace
@@ -101,21 +146,7 @@ class City4UApiClient:
                 ssl=False,  # Disable SSL verification as in original code
                 timeout=aiohttp.ClientTimeout(total=30),
             ) as response:
-                if response.status != 200:
-                    text = await response.text()
-                    _LOGGER.error(
-                        "Authentication failed with status %s: %s",
-                        response.status,
-                        text[:500],
-                    )
-                    raise aiohttp.ClientResponseError(
-                        response.request_info,
-                        response.history,
-                        status=response.status,
-                        message=f"Authentication failed: {text[:100]}...",
-                    )
-
-                data = await response.json()
+                data = await self._parse_json_response(response, "Authentication")
                 user_token = data.get("UserToken")
                 if not user_token:
                     _LOGGER.error("No UserToken found in response")
@@ -164,21 +195,9 @@ class City4UApiClient:
                 ssl=False,
                 timeout=aiohttp.ClientTimeout(total=30),
             ) as response:
-                if response.status != 200:
-                    text = await response.text()
-                    _LOGGER.error(
-                        "Data fetch failed with status %s: %s",
-                        response.status,
-                        text[:500],
-                    )
-                    raise aiohttp.ClientResponseError(
-                        response.request_info,
-                        response.history,
-                        status=response.status,
-                        message=f"Data fetch failed: {text[:100]}...",
-                    )
-
-                data: list[dict[str, Any]] = await response.json()
+                data: list[dict[str, Any]] = await self._parse_json_response(
+                    response, "Data fetch"
+                )
                 self._last_poll_time = datetime.now()
                 _LOGGER.debug("Successfully fetched water consumption data")
                 return data

@@ -50,9 +50,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     try:
         await api.authenticate()
-    except aiohttp.ClientError as err:
+    except aiohttp.ClientResponseError as err:
+        if err.status in (401, 403):
+            _LOGGER.error("Authentication rejected (status %s): %s", err.status, err)
+            raise ConfigEntryAuthFailed("Invalid credentials") from err
         _LOGGER.error("Authentication failed: %s", err)
-        raise ConfigEntryAuthFailed("Authentication failed") from err
+        raise ConfigEntryNotReady(
+            f"Authentication failed (status {err.status}): {err}"
+        ) from err
+    except aiohttp.ClientError as err:
+        _LOGGER.error("Authentication connection error: %s", err)
+        raise ConfigEntryNotReady(f"Failed to connect to City4U API: {err}") from err
     except Exception as err:
         _LOGGER.exception("Unknown error occurred during authentication: %s", err)
         raise ConfigEntryNotReady("Failed to connect to City4U API") from err
@@ -65,6 +73,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 await api.authenticate()
 
             return await api.fetch_water_data()
+        except aiohttp.ClientResponseError as err:
+            if err.status in (401, 403):
+                raise ConfigEntryAuthFailed(
+                    f"Session expired or invalid credentials: {err}"
+                ) from err
+            raise UpdateFailed(f"Error communicating with API: {err}") from err
         except aiohttp.ClientError as err:
             _LOGGER.error("Error fetching water data: %s", err)
             raise UpdateFailed(f"Error communicating with API: {err}") from err
